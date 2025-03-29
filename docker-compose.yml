@@ -11,6 +11,7 @@ services:
     environment:
       - MONGO_URI=${MONGO_URI}
       - PORT=${PORT}
+      - NODE_OPTIONS=--max-old-space-size=2048
     volumes:
       - .:/app
       - /app/node_modules
