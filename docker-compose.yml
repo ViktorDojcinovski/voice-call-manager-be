@@ -3,5 +3,27 @@ services:
   app:
     restart: always
     build: .
+    container_name: express_backend
     ports:
       - "3000:3000"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - PORT=${PORT}
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    command: ["--noauth"]
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

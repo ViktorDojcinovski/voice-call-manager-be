@@ -1,12 +1,14 @@
-FROM node:10
+FROM node:20
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY package*.json ./
 
 RUN npm install
 
 COPY . .
+
+RUN npm install -g ts-node
 
 EXPOSE 3000
 
