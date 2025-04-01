@@ -60,12 +60,16 @@ app.use(errorHandler);
 const port = process.env.PORT || 3000;
 
 const start = async () => {
+  console.log("Starting...");
   if (!process.env.MONGO_URI) {
     throw new Error("MONGO_URI must be defined");
   }
 
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGO_URI, {
+      bufferCommands: false,
+      maxPoolSize: 5,
+    });
     console.log("Connected to MongoDB");
   } catch (error) {
     console.error(error);
