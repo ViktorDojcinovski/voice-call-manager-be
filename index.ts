@@ -71,8 +71,28 @@ const start = async () => {
     console.error(error);
   }
 
-  app.listen(port, function () {
+  const server = app.listen(port, function () {
     console.log("Express server running on *:" + port);
+  });
+
+  setInterval(() => {
+    console.log(`Memory Usage: ${JSON.stringify(process.memoryUsage())}`);
+  }, 5000);
+
+  const shutdown = async () => {
+    console.log("Shutting down...");
+    await mongoose.connection.close();
+    server.close(() => {
+      console.log("Server closed.");
+      process.exit(0);
+    });
+  };
+
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
+  process.on("uncaughtException", (err) => {
+    console.error("Uncaught Exception:", err);
+    shutdown();
   });
 };
 
