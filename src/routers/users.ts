@@ -15,7 +15,7 @@ const router = express.Router();
 router.get("/", async (req: Request, res: Response) => {
   const users = await User.find();
 
-  res.status(200).send(users);
+  res.status(200).json(users);
 });
 
 router.post("/", async (req: Request, res: Response) => {
@@ -53,7 +53,7 @@ router.post("/", async (req: Request, res: Response) => {
     // await session.commitTransaction();
     // session.endSession();
 
-    res.status(201).send({ user, settings });
+    res.status(201).json({ user, settings });
   } catch (error) {
     console.log("error: ", error);
     if (error instanceof BadRequestError) {
@@ -62,7 +62,7 @@ router.post("/", async (req: Request, res: Response) => {
     // await session.abortTransaction();
     // session.endSession();
     // console.error("Transaction failed:", error);
-    res.status(500).send({ message: "An error occurred. Please try again." });
+    res.status(500).json({ message: "An error occurred. Please try again." });
   }
 });
 
@@ -74,7 +74,7 @@ router.get("/:userId", async (req: Request, res: Response) => {
     throw new NotFoundError();
   }
 
-  res.status(200).send(user);
+  res.status(200).json(user);
 });
 
 router.patch("/:userId", async (req: Request, res: Response) => {
@@ -90,7 +90,7 @@ router.patch("/:userId", async (req: Request, res: Response) => {
     throw new NotFoundError();
   }
 
-  res.status(200).send(user);
+  res.status(200).json(user);
 });
 
 router.delete("/:userId", async (req: Request, res: Response) => {
@@ -115,12 +115,12 @@ router.delete("/:userId", async (req: Request, res: Response) => {
     // await session.commitTransaction();
     // session.endSession();
 
-    res.status(200).send({ message: "User deleted successfully" });
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     // await session.abortTransaction();
     // session.endSession();
     // console.error("Transaction failed:", error);
-    res.status(500).send({ message: "An error occurred. Please try again." });
+    res.status(500).json({ message: "An error occurred. Please try again." });
   }
 });
 

@@ -19,14 +19,17 @@ import { errorHandler } from "./src/middlewares";
 
 const app = express();
 
+const corsOptions = {
+  origin: "https://viktordojcinovski.github.io",
+  methods: cfg.allowedMethods as string[],
+  allowedHeaders: ["Content-Type"],
+  credentials: true,
+};
+
 // CORS
-app.use(
-  cors({
-    origin: cfg.allowedOrigin as string,
-    methods: cfg.allowedMethods as string[],
-    credentials: true,
-  }),
-);
+app.use(cors(corsOptions));
+
+app.options("*", cors(corsOptions));
 
 // Body parsing
 app.use(urlencoded({ extended: true }));
@@ -40,6 +43,7 @@ app.use(
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
+    sameSite: "none",
   }),
 );
 

@@ -47,14 +47,14 @@ router.post(
       jwt: userJwt,
     };
 
-    res.status(200).send(existingUser);
+    res.status(200).json(existingUser);
   },
 );
 
 router.post("/signout", (req: Request, res: Response) => {
   req.session = null;
 
-  res.send({});
+  res.json({});
 });
 
 export { router as authRouter };

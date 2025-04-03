@@ -50,8 +50,9 @@ cfg.apiKey = process.env.TWILIO_API_KEY;
 cfg.apiSecret = process.env.TWILIO_API_SECRET;
 
 // CORS config object values
-cfg.allowedOrigin = "http://localhost:5173";
-cfg.allowedMethods = ["GET", "POST", "PATCH", "DELETE"];
+cfg.allowedOrigin =
+  "https://viktordojcinovski.github.io/voice-call-manager-fe/#/";
+cfg.allowedMethods = ["GET", "POST", "PATCH", "DELETE", "OPTIONS"];
 
 // Export configuration object
 export default cfg;

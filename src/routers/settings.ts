@@ -15,7 +15,7 @@ router.get("/:userId", async (req: Request, res: Response) => {
   const settings = await Settings.findOne({ user: userId });
   if (!settings) throw new NotFoundError();
 
-  res.status(200).send(settings);
+  res.status(200).json(settings);
 });
 
 router.patch(
@@ -62,7 +62,7 @@ router.patch(
       throw new NotFoundError();
     }
 
-    res.status(200).send(updatedSettings);
+    res.status(200).json(updatedSettings);
   },
 );
 

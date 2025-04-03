@@ -27,7 +27,7 @@ router.post("/call-campaign", (req: Request, res: Response) => {
     ActiveCalls.addCall(call.sid, phoneNumber);
   });
 
-  res.status(200).send("Call campaign started successfully");
+  res.status(200).json("Call campaign started successfully");
 });
 
 router.post("/stop-campaign", async (req, res) => {

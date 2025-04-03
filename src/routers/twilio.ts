@@ -29,7 +29,7 @@ router.post("/token", authenticateUser, (req, res) => {
   });
   accessToken.addGrant(grant);
 
-  res.status(200).send({
+  res.status(200).json({
     identity,
     token: accessToken.toJwt(),
   });

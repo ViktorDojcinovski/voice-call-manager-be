@@ -15,6 +15,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    command: nodemon --exec ts-node index.ts
 
   mongo:
     image: mongo:latest
