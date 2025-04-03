@@ -28,7 +28,7 @@
     "node": ">=10.x"
   },
   "dependencies": {
-    "@twilio/voice-sdk": "^2.2.0",
+    "@twilio/voice-sdk": "^2.12.4",
     "bcryptjs": "^3.0.2",
     "body-parser": "^1.19.0",
     "cookie-session": "^2.1.0",
