@@ -79,7 +79,7 @@ const start = async () => {
     console.error(error);
   }
 
-  const server = app.listen(port, function () {
+  const server = app.listen(port as number, "0.0.0.0", function () {
     console.log("Express server running on *:" + port);
   });
 
