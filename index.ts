@@ -28,8 +28,10 @@ const corsOptions = {
 
 // CORS
 app.use(cors(corsOptions));
-
 app.options("*", cors(corsOptions));
+
+// Trust NGINX proxying
+app.set("trust proxy", 1);
 
 // Body parsing
 app.use(urlencoded({ extended: true }));
