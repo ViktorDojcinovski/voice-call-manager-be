@@ -21,9 +21,8 @@ import { errorHandler } from "./middlewares";
 
 const app = express();
 
-// TO-DO make origin specific
 const corsOptions = {
-  origin: "*",
+  origin: cfg.allowedOrigin as string,
   methods: cfg.allowedMethods as string[],
   allowedHeaders: ["Content-Type"],
   credentials: true,
