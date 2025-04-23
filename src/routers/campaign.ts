@@ -4,7 +4,7 @@ import { TwilioClient } from "../services/twilio-client";
 import { ActiveCalls } from "../services/active-calls";
 import { authenticateUser } from "../middlewares";
 
-import config from "../../config";
+import config from "../config";
 
 const router = express.Router();
 router.use(authenticateUser);

@@ -13,14 +13,16 @@ import {
   twilioRouter,
   usersRouter,
   settingsRouter,
-} from "./src/routers";
-import { NotFoundError } from "./src/errors";
-import { errorHandler } from "./src/middlewares";
+  contactsRouter,
+  listRouter,
+} from "./routers";
+import { NotFoundError } from "./errors";
+import { errorHandler } from "./middlewares";
 
 const app = express();
 
 const corsOptions = {
-  origin: "https://viktordojcinovski.github.io",
+  origin: cfg.allowedOrigin as string,
   methods: cfg.allowedMethods as string[],
   allowedHeaders: ["Content-Type"],
   credentials: true,
@@ -45,7 +47,7 @@ app.use(
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
-    sameSite: "none",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   }),
 );
 
@@ -55,6 +57,8 @@ app.use("/api/campaign", campaignRouter);
 app.use("/api/twilio", twilioRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/contacts", contactsRouter);
+app.use("/api/lists", listRouter);
 
 app.all("*", (req: Request, res: Response) => {
   throw new NotFoundError();

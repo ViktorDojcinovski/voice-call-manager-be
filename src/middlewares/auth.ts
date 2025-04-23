@@ -15,6 +15,7 @@ declare module "express-serve-static-core" {
 }
 
 const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
+  console.log("req: ", req.session);
   if (!req.session?.jwt) {
     throw new NotAuthorisedError();
   }
@@ -35,21 +36,21 @@ const requireAdmin = async (
 ) => {
   try {
     if (!req.user) {
-      throw new NotAuthorisedError(); // This will be caught below
+      throw new NotAuthorisedError();
     }
 
     const user = await User.findById(req.user.id);
     if (!user) {
-      throw new NotFoundError(); // This will be caught below
+      throw new NotFoundError();
     }
 
     if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN) {
-      throw new NotAuthorisedError(); // This will be caught below
+      throw new NotAuthorisedError();
     }
 
-    next(); // If all checks pass, move to the next middleware
+    next();
   } catch (error) {
-    next(error); // Pass error to Express error handler
+    next(error);
   }
 };
 

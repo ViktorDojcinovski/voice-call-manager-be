@@ -1,6 +1,6 @@
 import Client, { Twilio } from "twilio";
 
-import config from "../../config";
+import config from "../config";
 
 export class TwilioClient {
   private static client: Twilio | null = null;

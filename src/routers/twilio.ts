@@ -6,7 +6,7 @@ import VoiceResponse from "twilio/lib/twiml/VoiceResponse";
 import { authenticateUser } from "../middlewares";
 import { ActiveCalls } from "../services/active-calls";
 
-import config from "../../config";
+import config from "../config";
 
 const router = express.Router();
 

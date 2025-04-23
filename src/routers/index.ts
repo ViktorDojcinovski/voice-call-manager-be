@@ -3,6 +3,8 @@ import { twilioRouter } from "./twilio";
 import { campaignRouter } from "./campaign";
 import { usersRouter } from "./users";
 import { settingsRouter } from "./settings";
+import { contactsRouter } from "./contacts";
+import { listRouter } from "./list";
 
 export {
   authRouter,
@@ -10,4 +12,6 @@ export {
   campaignRouter,
   usersRouter,
   settingsRouter,
+  contactsRouter,
+  listRouter,
 };
