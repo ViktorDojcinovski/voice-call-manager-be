@@ -54,7 +54,7 @@ router.post(
       throw new RequestValidationError(errors.array());
     }
 
-    const list = List.build(req.body);
+    const list = List.build({ user: req.user!.id, ...req.body });
     await list.save();
 
     res.status(201).json(list);

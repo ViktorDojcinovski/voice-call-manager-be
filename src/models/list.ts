@@ -10,8 +10,7 @@ import {
 } from "../schemas/lists";
 
 interface ListAttrs {
-  // TO-DO remove comment after fixing auth on dev
-  // user: mongoose.Types.ObjectId;
+  user: mongoose.Types.ObjectId;
   listName: string;
   listPriority: string;
   listType: string;
@@ -31,8 +30,7 @@ interface ListAttrs {
 }
 
 interface ListDoc extends Document {
-  // TO-DO remove comment after fixing auth on dev
-  // user: mongoose.Types.ObjectId;
+  user: mongoose.Types.ObjectId;
   listName: string;
   listPriority: string;
   listType: string;
