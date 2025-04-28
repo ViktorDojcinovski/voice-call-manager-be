@@ -6,12 +6,21 @@ import { NotFoundError, RequestValidationError } from "../errors";
 import { authenticateUser, requireAdmin } from "../middlewares";
 
 const router = express.Router();
-// router.use(authenticateUser, requireAdmin);
+router.use(authenticateUser, requireAdmin);
 
-// Get a list by userId
+// Get a list
+router.get("/:id", async (req: Request, res: Response) => {
+  // TO-DO compare the user from the token with the owner of the list
+  const { id } = req.params;
+  const list = await List.findById(id);
+  if (!list) throw new NotFoundError();
+
+  res.status(200).json(list);
+});
+
+// Get lists
 router.get("/", async (req: Request, res: Response) => {
-  // const { userId } = req.params;
-
+  // TO-DO compare the user from the token with the owner of the list
   const lists = await List.find({});
   if (!lists.length) throw new NotFoundError();
 
@@ -31,6 +40,12 @@ router.post(
     body("exitStrategy").optional().isString(),
     body("exitStrategyDescription").optional().isString(),
     body("steps").isArray(),
+    body("tags").optional().isString(),
+    body("restrictToOwnedLeads").optional().isBoolean(),
+    body("restrictToOwnedAccounts").optional().isBoolean(),
+    body("listOwner").optional().isString(),
+    body("listActive").optional().isBoolean(),
+    body("hasExitCriteria").optional().isBoolean(),
   ],
   async (req: Request, res: Response) => {
     console.log("req.body: ", req.body);
@@ -48,7 +63,7 @@ router.post(
 
 // Update an existing list
 router.patch(
-  "/edit/:id",
+  "/:id",
   [
     body("listName").optional().isString(),
     body("listPriority").optional().isString(),
@@ -59,6 +74,12 @@ router.patch(
     body("exitStrategy").optional().isString(),
     body("exitStrategyDescription").optional().isString(),
     body("steps").optional().isArray(),
+    body("tags").optional().isString(),
+    body("restrictToOwnedLeads").optional().isBoolean(),
+    body("restrictToOwnedAccounts").optional().isBoolean(),
+    body("listOwner").optional().isString(),
+    body("listActive").optional().isBoolean(),
+    body("hasExitCriteria").optional().isBoolean(),
   ],
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
@@ -69,7 +90,6 @@ router.patch(
     const { id } = req.params;
     const updateData: Partial<Record<string, unknown>> = {};
 
-    // Build the update object dynamically
     for (const key in req.body) {
       updateData[key] = req.body[key];
     }

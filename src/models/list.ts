@@ -22,6 +22,12 @@ interface ListAttrs {
   exitStrategyDescription: string;
   steps: Step[];
   contacts?: mongoose.Types.ObjectId[];
+  tags?: string;
+  restrictToOwnedLeads?: boolean;
+  restrictToOwnedAccounts?: boolean;
+  listOwner?: string;
+  listActive?: boolean;
+  hasExitCriteria?: boolean;
 }
 
 interface ListDoc extends Document {
@@ -37,6 +43,12 @@ interface ListDoc extends Document {
   exitStrategyDescription: string;
   steps: Step[];
   contacts: mongoose.Types.ObjectId[];
+  tags?: string;
+  restrictToOwnedLeads?: boolean;
+  restrictToOwnedAccounts?: boolean;
+  listOwner?: string;
+  listActive?: boolean;
+  hasExitCriteria?: boolean;
 }
 
 interface ListModel extends Model<ListDoc> {
@@ -45,8 +57,7 @@ interface ListModel extends Model<ListDoc> {
 
 const listSchema = new mongoose.Schema(
   {
-    // TO-DO remove comment after fixing auth on dev
-    // user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     listName: { type: String, required: true },
     listPriority: { type: String, required: true },
     listType: { type: String, required: true },
@@ -57,6 +68,12 @@ const listSchema = new mongoose.Schema(
     exitStrategyDescription: { type: String, required: true },
     steps: { type: [stepSchema], default: [] },
     contacts: [{ type: Schema.Types.ObjectId, ref: "Contact", default: [] }],
+    tags: { type: String, default: "" },
+    restrictToOwnedLeads: { type: Boolean, default: false },
+    restrictToOwnedAccounts: { type: Boolean, default: false },
+    listOwner: { type: String, default: "" },
+    listActive: { type: Boolean, default: true },
+    hasExitCriteria: { type: Boolean, default: false },
   },
   {
     toJSON: {
