@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
 
-import { TelephonyConnection, PowerDialerMode } from "voice-javascript-common";
+import { PowerDialerMode } from "voice-javascript-common";
+
+enum TelephonyConnection {
+  SOFT_CALL = "Soft call",
+  PARALLEL_CALL = "Two Parallel calls",
+  ADVANCED_PARALLEL_CALL = "Four Parallel calls",
+}
 
 const sfdcFieldSchema = new mongoose.Schema({
   id: { type: String, required: true },

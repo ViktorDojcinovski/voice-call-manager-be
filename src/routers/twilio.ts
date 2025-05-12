@@ -11,6 +11,7 @@ import config from "../config";
 const router = express.Router();
 
 router.post("/token", authenticateUser, (req, res) => {
+  console.log("inside");
   const identity = "webrtc_user";
 
   const accessToken = new AccessToken(
@@ -36,11 +37,14 @@ router.post("/token", authenticateUser, (req, res) => {
 });
 
 router.post("/status-callback", (req, res) => {
+  console.log("Status callback");
   const { CallStatus, CallSid } = req.body;
   const client = TwilioClient(
     config.accountSid as string,
     config.authToken as string,
   );
+
+  console.log(`Call SID: ${CallSid} has status: ${CallStatus}`);
 
   if (CallStatus === "in-progress") {
     const twiml = new VoiceResponse();
@@ -59,6 +63,16 @@ router.post("/status-callback", (req, res) => {
     });
 
     res.status(200).send(twiml.toString());
+  } else if (
+    ["completed", "canceled", "failed", "no-answer", "busy"].includes(
+      CallStatus,
+    )
+  ) {
+    console.log(`Removing call ${CallSid} from active list`);
+    ActiveCalls.removeCall(CallSid);
+    res.status(200).end();
+  } else {
+    res.status(200).end();
   }
 });
 

@@ -1,7 +1,13 @@
-import { TelephonyConnection, PowerDialerMode } from "voice-javascript-common";
+import { PowerDialerMode } from "voice-javascript-common";
 
 import { SettingCategory } from "../models/settings";
 import { phoneSettingsSchema } from "../schemas/phone-settings-schema";
+
+enum TelephonyConnection {
+  SOFT_CALL = "Soft call",
+  PARALLEL_CALL = "Two Parallel calls",
+  ADVANCED_PARALLEL_CALL = "Four Parallel calls",
+}
 
 type DefaultSettings = {
   "General Settings": SettingCategory;

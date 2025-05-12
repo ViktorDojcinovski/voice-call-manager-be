@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 
 import List from "../models/list";
+import Contact from "../models/contact";
 import { NotFoundError, RequestValidationError } from "../errors";
 import { authenticateUser, requireAdmin } from "../middlewares";
 
@@ -109,15 +110,62 @@ router.patch(
 );
 
 // Delete a list
-router.delete("/:id", async (req: Request, res: Response) => {
-  const { id } = req.params;
+router.delete("/:listId", async (req: Request, res: Response) => {
+  const { listId } = req.params;
 
-  const deletedList = await List.findByIdAndDelete(id);
+  const deletedList = await List.findByIdAndDelete(listId);
   if (!deletedList) {
     throw new NotFoundError();
   }
 
   res.status(200).json({ message: "List deleted successfully." });
 });
+
+router.post(
+  "/:listId/step/:stepIndex/contacts",
+  [body("step").optional().isNumeric()],
+  async (req: Request, res: Response): Promise<void> => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new RequestValidationError(errors.array());
+    }
+
+    const { listId, stepIndex } = req.params;
+    const step = Number(stepIndex);
+
+    try {
+      const list = await List.findById(listId);
+      if (!list) {
+        res.status(404).json({ error: "List not found" });
+        return;
+      }
+
+      const currentStep = list.steps[step - 1];
+      const allContacts = await Contact.find({ listId }).lean();
+
+      const filteredContacts = allContacts.filter((contact) => {
+        const actions = contact.actions || [];
+
+        if (step === 1) {
+          return (
+            actions.length === 0 ||
+            (actions.length === 1 &&
+              actions[0].result === currentStep.defaultAction)
+          );
+        } else {
+          return (
+            actions.length === step &&
+            ["Not Contacted", "No Answer"].includes(actions[step].result)
+          );
+        }
+      });
+
+      res.json(filteredContacts);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+);
 
 export { router as listRouter };

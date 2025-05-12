@@ -4,6 +4,10 @@ export interface ContactAttrs {
   userId: mongoose.Types.ObjectId;
   listId: mongoose.Types.ObjectId;
   email: string;
+  actions: {
+    result: string;
+    timestamp: string;
+  }[];
   [key: string]: any;
 }
 
@@ -11,6 +15,10 @@ interface ContactDoc extends Document {
   userId: mongoose.Types.ObjectId;
   listId: mongoose.Types.ObjectId;
   email: string;
+  actions: {
+    result: string;
+    timestamp: string;
+  }[];
   [key: string]: any;
 }
 
@@ -30,12 +38,22 @@ const contactSchema = new mongoose.Schema(
       ref: "List",
       required: true,
     },
-    lead_name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
     name: { type: String },
-    phone: { type: String },
+    lead_name: { type: String },
+    email: { type: String, required: true, unique: true },
+    actions: {
+      type: [
+        {
+          result: { type: String, required: true },
+          timestamp: { type: String, required: true },
+        },
+      ],
+      default: [],
+    },
+    corporate_phone: { type: String },
+    mobile_phone: { type: String },
     organization: { type: String },
-    // TO-DO: add other fields based on the CSV structure
+    // TO-DO: add other possible fields based on the CSV structure
   },
   {
     toJSON: {

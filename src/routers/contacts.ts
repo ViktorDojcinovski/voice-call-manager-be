@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { MongoBulkWriteError } from "mongodb";
 import express, { Request, Response } from "express";
+import { body, validationResult } from "express-validator";
 import multer from "multer";
 import csv from "csv-parser";
 import { Readable } from "stream";
@@ -8,7 +9,11 @@ import { Readable } from "stream";
 import Contact from "../models/contact";
 import List from "../models/list";
 import { authenticateUser, requireAdmin } from "../middlewares";
-import { BadRequestError, NotFoundError } from "../errors";
+import {
+  BadRequestError,
+  NotFoundError,
+  RequestValidationError,
+} from "../errors";
 import { catchAsync } from "../utils/catchAsync";
 
 const router = express.Router();
@@ -54,6 +59,9 @@ router.post(
     const list = await List.findById(selectedListId);
     if (!list) {
       throw new Error("List not found");
+    }
+    if (!list?.user) {
+      throw new Error("List missing user field");
     }
 
     const buffer = file.buffer;
@@ -144,8 +152,8 @@ router.post(
 
       const insertedIds = Object.values(result.insertedIds);
 
-      list.contacts.push(...insertedIds);
-      await list.save();
+      list.set("contacts", [...list.contacts, ...insertedIds]);
+      await list.save({ validateBeforeSave: false });
 
       res.status(201).json({
         created: insertedIds.length,
@@ -167,6 +175,62 @@ router.post(
         details: error instanceof Error ? error.message : error,
       });
     }
+  }),
+);
+
+router.patch(
+  "/:contactId",
+  [
+    body("result").notEmpty().isString(),
+    body("timestamp").notEmpty().isString(),
+  ],
+  async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new RequestValidationError(errors.array());
+    }
+    const { result, timestamp } = req.body;
+    const { contactId } = req.params;
+
+    const updatedContact = await Contact.findByIdAndUpdate(
+      contactId,
+      { $push: { actions: { result, timestamp } } },
+      { new: true, runValidators: true },
+    );
+
+    if (!updatedContact) {
+      throw new NotFoundError();
+    }
+  },
+);
+
+router.post(
+  "/batch",
+  catchAsync(async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const { ids }: { ids: string[] } = req.body;
+
+    if (!userId) {
+      throw new NotFoundError();
+    }
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new BadRequestError("Invalid or empty 'ids' array.");
+    }
+
+    // Ensure all IDs are valid ObjectId strings
+    const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
+    console.log("validIds: ", validIds);
+    if (validIds.length === 0) {
+      throw new BadRequestError("No valid contact IDs provided.");
+    }
+
+    const contacts = await Contact.find({
+      _id: { $in: validIds },
+      userId,
+    }).lean();
+
+    res.status(200).json(contacts);
   }),
 );
 

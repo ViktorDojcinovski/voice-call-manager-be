@@ -22,6 +22,17 @@ router.post("/call-campaign", (req: Request, res: Response) => {
       url: "https://ce1d-92-53-24-142.ngrok-free.app/status-callback",
       to: phoneNumber,
       from: callerIds[i],
+      statusCallback:
+        "https://67a1-79-126-154-216.ngrok-free.app/api/twilio/status-callback",
+      statusCallbackEvent: [
+        "initiated",
+        "ringing",
+        "answered",
+        "completed",
+        "busy",
+        "no-answer",
+      ],
+      statusCallbackMethod: "POST",
     });
 
     ActiveCalls.addCall(call.sid, phoneNumber);
@@ -39,6 +50,11 @@ router.post("/stop-campaign", async (req, res) => {
   }
 
   ActiveCalls.resetCalls();
+});
+
+router.get("/campaign-status", (req, res) => {
+  const activeCalls = ActiveCalls.getCalls();
+  res.json({ activeCalls: activeCalls.length });
 });
 
 export { router as campaignRouter };

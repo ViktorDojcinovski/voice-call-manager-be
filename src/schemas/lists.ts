@@ -17,6 +17,8 @@ interface Step {
   gapUnit: string;
   stepName: string;
   stepPriority: string;
+  defaultAction: string;
+  eligibleActionsForNextStep: string[];
 }
 
 const filterSchema = new mongoose.Schema<Filter>(
