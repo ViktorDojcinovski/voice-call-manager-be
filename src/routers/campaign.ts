@@ -23,10 +23,10 @@ router.post("/call-campaign", async (req: Request, res: Response) => {
     // TO DO change any to Contact
     contacts.map(async (contact: any, i: number) => {
       const call = await client.calls.create({
-        url: `https://5625-31-11-65-107.ngrok-free.app/api/twilio/status-callback?userId=${userId}&contactId=${contact._id}`,
+        url: `https://p1.echo-o.com/api/twilio/status-callback?userId=${userId}&contactId=${contact._id}`,
         to: contact.mobile_phone,
         from: callerIds[i],
-        statusCallback: `https://5625-31-11-65-107.ngrok-free.app/api/twilio/status-callback?userId=${userId}`,
+        statusCallback: `https://p1.echo-o.com/api/twilio/status-callback?userId=${userId}`,
         statusCallbackEvent: [
           "initiated",
           "ringing",
