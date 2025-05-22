@@ -10,7 +10,7 @@ import config from "../config";
 
 const router = express.Router();
 
-// router.use(authenticateUser);
+router.use(authenticateUser);
 
 router.post("/token", (req, res) => {
   const identity = "webrtc_user";

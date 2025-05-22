@@ -6,7 +6,7 @@ import { NotFoundError, RequestValidationError } from "../errors";
 import { authenticateUser, requireAdmin } from "../middlewares";
 
 const router = express.Router();
-// router.use(authenticateUser, requireAdmin);
+router.use(authenticateUser, requireAdmin);
 
 router.get("/:userId", async (req: Request, res: Response) => {
   const { userId } = req.params;

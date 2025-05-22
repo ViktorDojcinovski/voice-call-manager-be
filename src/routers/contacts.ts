@@ -20,7 +20,7 @@ import { catchAsync } from "../utils/catchAsync";
 const router = express.Router();
 const upload = multer();
 
-// router.use(authenticateUser, requireAdmin);
+router.use(authenticateUser, requireAdmin);
 
 router.get("/", async (req: Request, res: Response) => {
   const userId = req.user?.id;
