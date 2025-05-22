@@ -1,36 +1,32 @@
 import mongoose, { Document, Model } from "mongoose";
 
-export interface ContactAttrs {
+export interface LeadAttrs {
   userId: mongoose.Types.ObjectId;
   listId: mongoose.Types.ObjectId;
   email: string;
   actions: {
     result: string;
-    notes: string;
     timestamp: string;
   }[];
-  status?: string;
   [key: string]: any;
 }
 
-interface ContactDoc extends Document {
+interface LeadDoc extends Document {
   userId: mongoose.Types.ObjectId;
   listId: mongoose.Types.ObjectId;
   email: string;
   actions: {
     result: string;
-    notes: string;
     timestamp: string;
   }[];
-  status: string;
   [key: string]: any;
 }
 
-interface ContactModel extends Model<ContactDoc> {
-  build(attrs: ContactAttrs): ContactDoc;
+interface LeadModel extends Model<LeadDoc> {
+  build(attrs: LeadAttrs): LeadDoc;
 }
 
-const contactSchema = new mongoose.Schema(
+const leadSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -59,12 +55,7 @@ const contactSchema = new mongoose.Schema(
       ],
       default: [],
     },
-    status: {
-      type: String,
-      enum: ["active", "archived"],
-      default: "active",
-    },
-    // TO-DO: add other possible fields based on the CSV structure
+    // TO-DO: add other possible fields based on the Lead bussiness logic
   },
   {
     toJSON: {
@@ -77,13 +68,10 @@ const contactSchema = new mongoose.Schema(
   },
 );
 
-contactSchema.statics.build = (attrs: ContactAttrs) => {
-  return new Contact(attrs);
+leadSchema.statics.build = (attrs: LeadAttrs) => {
+  return new Lead(attrs);
 };
 
-const Contact = mongoose.model<ContactDoc, ContactModel>(
-  "Contact",
-  contactSchema,
-);
+const Lead = mongoose.model<LeadDoc, LeadModel>("Lead", leadSchema);
 
-export default Contact;
+export default Lead;

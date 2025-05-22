@@ -8,6 +8,7 @@ import { Readable } from "stream";
 
 import Contact from "../models/contact";
 import List from "../models/list";
+import Lead from "../models/lead";
 import { authenticateUser, requireAdmin } from "../middlewares";
 import {
   BadRequestError,
@@ -27,7 +28,7 @@ router.get("/", async (req: Request, res: Response) => {
   if (!userId) throw new NotFoundError();
 
   try {
-    const contacts = await Contact.find({ userId }).lean();
+    const contacts = await Contact.find({ userId, status: "active" }).lean();
     res.status(200).json({ contacts });
   } catch (error) {
     console.error("Failed to fetch contacts:", error);
@@ -180,27 +181,53 @@ router.post(
 
 router.patch(
   "/:contactId",
-  [
-    body("result").notEmpty().isString(),
-    body("timestamp").notEmpty().isString(),
-  ],
+  [body("result").notEmpty().isString(), body("timestamp").notEmpty()],
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       throw new RequestValidationError(errors.array());
     }
-    const { result, timestamp } = req.body;
+    const { result, notes, timestamp } = req.body;
     const { contactId } = req.params;
 
-    const updatedContact = await Contact.findByIdAndUpdate(
-      contactId,
-      { $push: { actions: { result, timestamp } } },
-      { new: true, runValidators: true },
-    );
+    const contact = await Contact.findById(contactId);
+    if (!contact) throw new NotFoundError();
 
-    if (!updatedContact) {
-      throw new NotFoundError();
+    const list = await List.findById(contact.listId);
+    if (!list) throw new NotFoundError();
+
+    const normalizedResult = result.replace(/\s+/g, "_").toLowerCase();
+    const shouldConvertToLead =
+      list.exitConditionsPositive.includes(normalizedResult);
+    const shouldArchive =
+      list.exitConditionsNegative?.includes(normalizedResult);
+
+    contact.actions.push({ result, notes, timestamp });
+
+    // Contact --> Lead
+    if (shouldConvertToLead) {
+      const leadData = {
+        ...contact.toObject(),
+        _id: undefined,
+      };
+
+      await new Lead(leadData).save();
+      await Contact.findByIdAndDelete(contactId);
+
+      res.status(200).json({ message: "Contact converted to lead." });
     }
+
+    // Contact --> Archived
+    if (shouldArchive) {
+      contact.status = "archived";
+    }
+
+    await contact.save();
+    res.status(200).json({
+      message: shouldArchive
+        ? "Contact archived."
+        : "Contact successfully updated!",
+    });
   },
 );
 
@@ -220,7 +247,6 @@ router.post(
 
     // Ensure all IDs are valid ObjectId strings
     const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
-    console.log("validIds: ", validIds);
     if (validIds.length === 0) {
       throw new BadRequestError("No valid contact IDs provided.");
     }

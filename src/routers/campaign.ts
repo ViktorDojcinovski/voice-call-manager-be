@@ -11,34 +11,41 @@ router.use(authenticateUser);
 
 // TO-DO error handling
 
-router.post("/call-campaign", (req: Request, res: Response) => {
-  const { phoneNumbers } = req.body;
+router.post("/call-campaign", async (req: Request, res: Response) => {
+  const { contacts } = req.body;
+  const userId = req.user!.id;
 
   const client = TwilioClient.getClient();
   const callerIds = (config.callerIds as string).split(",");
+  // TO DO -- change any to Contact
 
-  phoneNumbers.map(async (phoneNumber: string, i: number) => {
-    const call = await client.calls.create({
-      url: "https://ce1d-92-53-24-142.ngrok-free.app/status-callback",
-      to: phoneNumber,
-      from: callerIds[i],
-      statusCallback:
-        "https://67a1-79-126-154-216.ngrok-free.app/api/twilio/status-callback",
-      statusCallbackEvent: [
-        "initiated",
-        "ringing",
-        "answered",
-        "completed",
-        "busy",
-        "no-answer",
-      ],
-      statusCallbackMethod: "POST",
-    });
+  await Promise.all(
+    // TO DO change any to Contact
+    contacts.map(async (contact: any, i: number) => {
+      const call = await client.calls.create({
+        url: `https://5625-31-11-65-107.ngrok-free.app/api/twilio/status-callback?userId=${userId}&contactId=${contact._id}`,
+        to: contact.mobile_phone,
+        from: callerIds[i],
+        statusCallback: `https://5625-31-11-65-107.ngrok-free.app/api/twilio/status-callback?userId=${userId}`,
+        statusCallbackEvent: [
+          "initiated",
+          "ringing",
+          "in-progress",
+          "completed",
+          "busy",
+          "no-answer",
+        ],
+        statusCallbackMethod: "POST",
+        machineDetection: "Enable",
+      });
 
-    ActiveCalls.addCall(call.sid, phoneNumber);
-  });
+      ActiveCalls.addCall(call.sid, contact.mobile_phone);
+    }),
+  );
 
-  res.status(200).json("Call campaign started successfully");
+  const activeCalls = ActiveCalls.getCalls();
+  console.log("activeCalls: ", activeCalls);
+  res.status(200).json(activeCalls);
 });
 
 router.post("/stop-campaign", async (req, res) => {
@@ -50,6 +57,8 @@ router.post("/stop-campaign", async (req, res) => {
   }
 
   ActiveCalls.resetCalls();
+
+  res.json({ message: "Campaign succesfully terminated!" });
 });
 
 router.get("/campaign-status", (req, res) => {

@@ -15,7 +15,6 @@ declare module "express-serve-static-core" {
 }
 
 const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
-  console.log("req: ", req.session);
   if (!req.session?.jwt) {
     throw new NotAuthorisedError();
   }

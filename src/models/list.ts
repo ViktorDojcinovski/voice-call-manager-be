@@ -19,6 +19,8 @@ interface ListAttrs {
   crossFilters: CrossFilter[];
   exitStrategy: string;
   exitStrategyDescription: string;
+  exitConditionsPositive: [String];
+  exitConditionsNegative: [String];
   steps: Step[];
   contacts?: mongoose.Types.ObjectId[];
   tags?: string;
@@ -39,6 +41,8 @@ interface ListDoc extends Document {
   crossFilters: CrossFilter[];
   exitStrategy: string;
   exitStrategyDescription: string;
+  exitConditionsPositive: [String];
+  exitConditionsNegative: [String];
   steps: Step[];
   contacts: mongoose.Types.ObjectId[];
   tags?: string;
@@ -64,6 +68,8 @@ const listSchema = new mongoose.Schema(
     crossFilters: { type: [crossFilterSchema], default: [] },
     exitStrategy: { type: String },
     exitStrategyDescription: { type: String },
+    exitConditionsPositive: { type: [String] },
+    exitConditionsNegative: { type: [String] },
     steps: { type: [stepSchema], default: [] },
     contacts: [{ type: Schema.Types.ObjectId, ref: "Contact", default: [] }],
     tags: { type: String, default: "" },

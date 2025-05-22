@@ -55,7 +55,15 @@ router.post(
       throw new RequestValidationError(errors.array());
     }
 
-    const list = List.build({ user: req.user!.id, ...req.body });
+    const transformedBody = {
+      ...req.body,
+      exitConditionsPositive:
+        req.body.exitConditionsPositive?.map((item: any) => item.value) || [],
+      exitConditionsNegative:
+        req.body.exitConditionsNegative?.map((item: any) => item.value) || [],
+    };
+
+    const list = List.build({ user: req.user!.id, ...transformedBody });
     await list.save();
 
     res.status(201).json(list);
@@ -92,7 +100,15 @@ router.patch(
     const updateData: Partial<Record<string, unknown>> = {};
 
     for (const key in req.body) {
-      updateData[key] = req.body[key];
+      const transformedBody = {
+        ...req.body,
+        exitConditionsPositive:
+          req.body.exitConditionsPositive?.map((item: any) => item.value) || [],
+        exitConditionsNegative:
+          req.body.exitConditionsNegative?.map((item: any) => item.value) || [],
+      };
+
+      updateData[key] = transformedBody[key];
     }
 
     const updatedList = await List.findByIdAndUpdate(
@@ -147,15 +163,13 @@ router.post(
         const actions = contact.actions || [];
 
         if (step === 1) {
-          return (
-            actions.length === 0 ||
-            (actions.length === 1 &&
-              actions[0].result === currentStep.defaultAction)
-          );
+          return actions.length === 0;
         } else {
+          console.log("actions: ", actions);
+          console.log("step: ", step);
           return (
-            actions.length === step &&
-            ["Not Contacted", "No Answer"].includes(actions[step].result)
+            actions.length === step - 1 &&
+            actions[step - 1]?.result === currentStep.defaultAction
           );
         }
       });
