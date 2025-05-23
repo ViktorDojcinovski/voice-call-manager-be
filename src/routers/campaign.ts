@@ -3,6 +3,7 @@ import express, { Request, Response } from "express";
 import { TwilioClient } from "../services/twilio-client";
 import { ActiveCalls } from "../services/active-calls";
 import { authenticateUser } from "../middlewares";
+import { normalizePhone } from "../utils/normilizePhone";
 
 import config from "../config";
 
@@ -24,7 +25,7 @@ router.post("/call-campaign", async (req: Request, res: Response) => {
     contacts.map(async (contact: any, i: number) => {
       const call = await client.calls.create({
         url: `https://p1.echo-o.com/api/twilio/status-callback?userId=${userId}&contactId=${contact._id}`,
-        to: contact.mobile_phone,
+        to: normalizePhone(contact.mobile_phone) as string,
         from: callerIds[i],
         statusCallback: `https://p1.echo-o.com/api/twilio/status-callback?userId=${userId}`,
         statusCallbackEvent: [
@@ -34,6 +35,7 @@ router.post("/call-campaign", async (req: Request, res: Response) => {
           "completed",
           "busy",
           "no-answer",
+          "failed",
         ],
         statusCallbackMethod: "POST",
         machineDetection: "Enable",
