@@ -9,12 +9,6 @@ import { ActiveCalls } from "../services/active-calls";
 import config from "../config";
 
 const router = express.Router();
-const client = TwilioClient(
-  config.accountSid as string,
-  config.authToken as string,
-);
-
-let userCallConnected: { [key: string]: boolean } = {};
 
 router.post("/token", authenticateUser, (req, res) => {
   const identity = "webrtc_user";
@@ -24,6 +18,9 @@ router.post("/token", authenticateUser, (req, res) => {
     config.apiKey as string,
     config.apiSecret as string,
   );
+  if (!accessToken) {
+    throw new Error("Something went wrong");
+  }
   accessToken.identity = identity;
 
   const grant = new VoiceGrant({
@@ -38,76 +35,90 @@ router.post("/token", authenticateUser, (req, res) => {
   });
 });
 
-router.post("/start-calls", authenticateUser, async (req, res) => {
-  const { contacts, userId } = req.body;
-  userCallConnected[userId] = false;
-
-  for (const contact of contacts) {
-    try {
-      const call = await client.calls.create({
-        url: `${config.baseUrl}/twilio/twiml-handler?contactId=${contact.id}&userId=${userId}`,
-        to: contact.phone,
-        from: config.twilioCallerId as string,
-        statusCallback: `${config.baseUrl}/twilio/status-callback?userId=${userId}&contactId=${contact.id}`,
-        statusCallbackEvent: ["initiated", "ringing", "answered", "completed"],
-        statusCallbackMethod: "POST",
-      });
-      ActiveCalls.addCall(call.sid, contact);
-    } catch (error) {
-      console.error("Failed to create call:", error);
-    }
-  }
-
-  res.status(200).send("Calls initiated");
-});
-
-router.post("/twiml-handler", (req, res) => {
-  const { contactId, userId } = req.query;
-  const twiml = new VoiceResponse();
-  const dial = twiml.dial({ timeout: 20 });
-  dial
-    .client("webrtc_user")
-    .parameter({ name: "contactId", value: contactId as string });
-  res.type("text/xml").send(twiml.toString());
-});
-
 router.post("/status-callback", async (req, res) => {
   const { Called, CallStatus, CallSid, AnsweredBy } = req.body;
   const userId = req.query.userId as string;
   const contactId = req.query.contactId as string;
-  const io = req.app.get("io");
 
-  console.log("Status Callback: ${CallSid} - ${CallStatus}");
+  const io = req.app.get("io");
+  console.log(`EMITTING to user-${userId}: call-status-user-${userId}`, {
+    to: Called,
+    status: CallStatus,
+    answeredBy: AnsweredBy || null,
+  });
   io.to(`user-${userId}`).emit(`call-status-user-${userId}`, {
     to: Called,
     status: CallStatus,
     answeredBy: AnsweredBy || null,
   });
+  console.log("Emit complete");
 
-  if (CallStatus === "in-progress" && !userCallConnected[userId]) {
-    userCallConnected[userId] = true;
+  const client = TwilioClient(
+    config.accountSid as string,
+    config.authToken as string,
+  );
+  console.log(`Call SID: ${CallSid} has status: ${CallStatus}`);
+  if (AnsweredBy) {
+    console.log(`Call was answered by: ${AnsweredBy}`);
+  }
 
-    // Hang up other parallel calls
+  if (CallStatus === "in-progress") {
+    if (AnsweredBy === "machine_start") {
+      console.log("Voicemail detected — optionally hang up or leave a message");
+    }
+
+    // Proceed with connecting to WebRTC user
+    const twiml = new VoiceResponse();
+    const dial = twiml.dial();
+    dial
+      .client("webrtc_user")
+      .parameter({ name: "contactId", value: contactId });
+
     for (const { callSid } of ActiveCalls.getCalls()) {
       if (callSid !== CallSid) {
         try {
           await client.calls(callSid).update({ status: "completed" });
         } catch (error) {
-          console.error("Failed to hang up ${callSid}:", error);
+          console.error(`Error ending call ${callSid}: `, error);
         }
       }
     }
-  }
 
-  if (
+    res.type("text/xml").status(200).send(twiml.toString());
+  } else if (
     ["completed", "canceled", "failed", "no-answer", "busy"].includes(
       CallStatus,
     )
   ) {
-    ActiveCalls.removeCall(CallSid);
-  }
+    console.log(`Call ${CallSid} ended with status: ${CallStatus}`);
 
-  res.status(200).end();
+    // Optionally inform UI more clearly
+    io.to(`user-${userId}`).emit(`call-status-user-${userId}`, {
+      to: Called,
+      status: CallStatus,
+      reason: req.body?.AnsweredBy || "N/A",
+    });
+
+    ActiveCalls.removeCall(CallSid);
+    res.status(200).end();
+  } else {
+    res.status(200).end();
+  }
 });
 
-export default router;
+router.post("/voice-response", (req, res) => {
+  const VoiceResponse = TwilioClient.twiml.VoiceResponse;
+  const twiml = new VoiceResponse();
+
+  const contactId = req.query.contactId as string;
+
+  // Use `as any` to access internal builder
+  const dial = (twiml as any).ele("Dial");
+  const client = dial.ele("Client", {}, "webrtc_user");
+  client.ele("Parameter", { name: "contactId", value: contactId });
+
+  res.type("text/xml");
+  res.send(twiml.toString());
+});
+
+export { router as twilioRouter };
