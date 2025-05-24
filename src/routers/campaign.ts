@@ -23,6 +23,7 @@ router.post("/call-campaign", async (req: Request, res: Response) => {
   await Promise.all(
     // TO DO change any to Contact
     contacts.map(async (contact: any, i: number) => {
+      console.log("contact.mobile_phone: ", contact.mobile_phone);
       const call = await client.calls.create({
         url: `https://p1.echo-o.com/api/twilio/status-callback?userId=${userId}&contactId=${contact._id}`,
         to: normalizePhone(contact.mobile_phone) as string,
