@@ -5,6 +5,7 @@ import List from "../models/list";
 import Contact from "../models/contact";
 import { NotFoundError, RequestValidationError } from "../errors";
 import { authenticateUser, requireAdmin } from "../middlewares";
+import { isValidPhoneNumber } from "../utils/isValidPhonNumber";
 
 const router = express.Router();
 router.use(authenticateUser, requireAdmin);
@@ -157,9 +158,16 @@ router.post(
       }
 
       const currentStep = list.steps[step - 1];
-      const allContacts = await Contact.find({ listId }).lean();
+      const allContacts = await Contact.find({
+        listId,
+        mobile_phone: { $exists: true, $ne: null },
+      }).lean();
 
-      const filteredContacts = allContacts.filter((contact) => {
+      const validContacts = allContacts.filter((contact) => {
+        return isValidPhoneNumber(contact.mobile_phone || "");
+      });
+
+      const filteredContacts = validContacts.filter((contact) => {
         const actions = contact.actions || [];
 
         if (step === 1) {

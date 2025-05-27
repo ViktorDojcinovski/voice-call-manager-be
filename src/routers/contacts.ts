@@ -16,6 +16,7 @@ import {
   RequestValidationError,
 } from "../errors";
 import { catchAsync } from "../utils/catchAsync";
+import { isValidPhoneNumber } from "../utils/isValidPhonNumber";
 
 const router = express.Router();
 const upload = multer();
@@ -254,9 +255,14 @@ router.post(
     const contacts = await Contact.find({
       _id: { $in: validIds },
       userId,
+      mobile_phone: { $exists: true, $ne: null },
     }).lean();
 
-    res.status(200).json(contacts);
+    const validContacts = contacts.filter((contact) => {
+      return isValidPhoneNumber(contact.mobile_phone || "");
+    });
+
+    res.status(200).json(validContacts);
   }),
 );
 
